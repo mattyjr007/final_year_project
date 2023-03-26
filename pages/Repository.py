@@ -78,7 +78,7 @@ with st.container():
 
 gb = GridOptionsBuilder.from_dataframe(data)
 gb.configure_default_column( autoHeight=True,minWidth=300, maxWidth=500)
-gb.configure_column('File ID',minWidth=300, maxWidth=400)
+gb.configure_column('File ID',minWidth=240, maxWidth=400)
 gb.configure_column('Authors Name',minWidth=100, maxWidth=150)
 gb.configure_column('Study Description',minWidth=100, maxWidth=150)
 gb.configure_column('Email',minWidth=150, maxWidth=200)
@@ -109,35 +109,43 @@ df = pd.DataFrame(selected)
 
 
 if len(df)>0:
+
+    st.write(df[['File ID','Email','Date']])
+
     bucket_name = 'dicomdatabase'
     object_key = df['File ID'][0]
 
     url = create_presigned_url(bucket_name, object_key)
 
-    btn = st.button('download file')
+    if url is not None:
+    
+        button_style = 'font-weight: 700; padding: 10px 13px; background-color: #5E5DF0; color: white; border: none; border-radius: 15px;'
 
-    if btn:
-     
-        if url is not None:
-        #response = requests.get(url)
-        #st.write(url)
-            webbrowser.open(url)
+        st.write(f'''
+                <a target="_self" href="{url}">
+                    <button style="{button_style}">
+                        Download file
+                    </button>
+                </a>
+                ''',
+                unsafe_allow_html=True
+            )        
 
 
 
 
 
-# if len(df)>0:
-#     st.write(df[['File ID','Email','Date']])
-#     fs = s3fs.S3FileSystem(key='AKIAR5QMEOGORZU3VBIR',secret ='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' )
-#     print(df['File ID'][0])
+    # if len(df)>0:
+    #     st.write(df[['File ID','Email','Date']])
+    #     fs = s3fs.S3FileSystem(key='AKIAR5QMEOGORZU3VBIR',secret ='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' )
+    #     print(df['File ID'][0])
 
-#     with fs.open("dicomdatabase/{}".format(df['File ID'][0]),"rb") as f:
-#         btn = st.download_button(
-#             label= "download file",
-#             data= f.read(),
-#             file_name=df['File ID'][0],
-#             mime="application/zip"
-#         )
- #Pass the selected rows to a new dataframe df
+    #     with fs.open("dicomdatabase/{}".format(df['File ID'][0]),"rb") as f:
+    #         btn = st.download_button(
+    #             label= "download file",
+    #             data= f.read(),
+    #             file_name=df['File ID'][0],
+    #             mime="application/zip"
+    #         )
+    #Pass the selected rows to a new dataframe df
 
