@@ -245,9 +245,9 @@ class kanon:
         # Creating the low level functional client
         client = boto3.client(
                 's3',
-                aws_access_key_id = 'AKIAR5QMEOGORZU3VBIR',
-                aws_secret_access_key = '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',
-                region_name = 'us-east-1'
+                aws_access_key_id = os.getenv('aws_access_key_id'),
+                aws_secret_access_key = os.getenv('aws_secret_access_key'),
+                region_name = os.getenv('region')
             )
 
         s3db = 'dicomdatabase'
@@ -279,12 +279,12 @@ class kanon:
             zipnameQ = self.zipname + ".zip"
 
             # Connect to server
-            db = mysql.connector.connect(
-                host="dicomdb.ccteipanw4qp.us-east-1.rds.amazonaws.com",
-                port=3306,
-                user="admin",
-                password="Godisgood007",
-                database = "dicomDB")
+            db =  mysql.connector.connect(
+                                            host=st.secrets["DB_HOST"],
+                                            port=3306,
+                                            user= st.secrets["user"],
+                                            password= st.secrets["pass"],
+                                            database = st.secrets["database"])
 
             # Get a cursor
             cur = db.cursor()

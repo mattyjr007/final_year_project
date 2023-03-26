@@ -7,6 +7,7 @@ import webbrowser
 import logging
 import boto3
 from botocore.exceptions import ClientError
+import os
 
 st.set_page_config(page_title="Repository", page_icon="📄",layout="wide")
 
@@ -24,9 +25,9 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     # Generate a presigned URL for the S3 object
     s3_client = boto3.client(
                 's3',
-                aws_access_key_id = 'AKIAR5QMEOGORZU3VBIR',
-                aws_secret_access_key = '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',
-                region_name = 'us-east-1'
+                aws_access_key_id = os.getenv("aws_access_key_id"),
+                aws_secret_access_key = os.getenv("aws_secret_access_key"),
+                region_name = os.getenv('region')
             )
     try:
         response = s3_client.generate_presigned_url('get_object',
@@ -45,26 +46,28 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
 def get_data():
 
         try:
-            mydb =  mysql.connector.connect(
-                                        host="dicomdb.ccteipanw4qp.us-east-1.rds.amazonaws.com",
-                                        port=3306,
-                                        user="admin",
-                                        password="Godisgood007",
-                                        database = "dicomDB")
+            mydb =   mysql.connector.connect(
+                                            host=st.secrets["DB_HOST"],
+                                            port=3306,
+                                            user= st.secrets["user"],
+                                            password= st.secrets["pass"],
+                                            database = st.secrets["database"] )
             
             query = "Select `File ID`, `Authors Name`,`Study Description`,`Email`, `Date` from Dicometa;"
             data = pd.read_sql(query,mydb)
             mydb.close() #close the connection
+            return data
         except Exception as e:
             #mydb.close()
             st.error("an error occured when loading database{}".format(str(e)))
-
-        return data
+            return None
 
 
 # get the datatable
-data = get_data()
-
+try :
+    data = get_data()
+except:
+    st.error("Unable to access database")
 #data= pd.read_csv('MOCK_DATA.csv', index_col=0) 
 
 
