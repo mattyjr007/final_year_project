@@ -42,7 +42,7 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     return response
 
 
-@st.cache_resource
+@st.cache_resource(ttl=30)
 def get_data():
 
         try:
