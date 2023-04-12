@@ -291,7 +291,8 @@ class kanon:
 
             query = ("SELECT COUNT(*) FROM Dicometa "
                     "WHERE Email = %s AND Role =  %s")
-            cur.execute(query, (self.email,"admin"))
+            admin = 'admin'
+            cur.execute(query, (self.email,admin))
 
             if cur.fetchone()[0] > 0:
                 self.role = "admin"

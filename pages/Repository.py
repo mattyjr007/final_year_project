@@ -11,6 +11,15 @@ import os
 
 st.set_page_config(page_title="Repository", page_icon="📄",layout="wide")
 
+@st.cache_resource(ttl=2000)
+def connect_s3():
+    s3_client = boto3.client(
+                's3',
+                aws_access_key_id = os.getenv("aws_access_key_id"),
+                aws_secret_access_key = os.getenv("aws_secret_access_key"),
+                region_name = os.getenv('region')
+            )
+    return s3_client
 
 
 def create_presigned_url(bucket_name, object_name, expiration=3600):
@@ -23,12 +32,7 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     """
 
     # Generate a presigned URL for the S3 object
-    s3_client = boto3.client(
-                's3',
-                aws_access_key_id = os.getenv("aws_access_key_id"),
-                aws_secret_access_key = os.getenv("aws_secret_access_key"),
-                region_name = os.getenv('region')
-            )
+    s3_client = connect_s3()
     try:
         response = s3_client.generate_presigned_url('get_object',
                                                     Params={'Bucket': bucket_name,
@@ -42,7 +46,7 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     return response
 
 
-@st.cache_resource(ttl=30)
+@st.cache_resource(ttl=100)
 def get_data():
 
         try:
@@ -55,8 +59,10 @@ def get_data():
             
             query = "Select `File ID`, `Authors Name`,`Study Description`,`Email`, `Date` from Dicometa;"
             data = pd.read_sql(query,mydb)
+            query2 = "Select `File ID`,`Email`,`Role`,`Accesskey` from Dicometa;"
+            data2 = pd.read_sql(query2,mydb)
             mydb.close() #close the connection
-            return data
+            return data,data2
         except Exception as e:
             #mydb.close()
             st.error("an error occured when loading database{}".format(str(e)))
@@ -65,7 +71,7 @@ def get_data():
 
 # get the datatable
 try :
-    data = get_data()
+    data,data_copy = get_data()
 except:
     st.error("Unable to access database")
 #data= pd.read_csv('MOCK_DATA.csv', index_col=0) 
@@ -117,22 +123,58 @@ if len(df)>0:
 
     bucket_name = 'dicomdatabase'
     object_key = df['File ID'][0]
+    print(df['Email'][0])
 
     url = create_presigned_url(bucket_name, object_key)
 
-    if url is not None:
-    
-        button_style = 'font-weight: 700; padding: 10px 13px; background-color: #5E5DF0; color: white; border: none; border-radius: 15px;'
+    df_filter = data_copy[data_copy['File ID'] == object_key]
+    df_role = df_filter[df_filter['Role'] == 'admin']
 
-        st.write(f'''
-                <a target="_self" href="{url}">
-                    <button style="{button_style}">
-                        Download file
-                    </button>
-                </a>
-                ''',
-                unsafe_allow_html=True
-            )        
+    if  len(df_role) > 0:
+        #print("IS AN ADMIN")
+        #print(df_filter['Accesskey'][0])
+
+        st.info("This file is owned by admin please request for accesskey from `{0}` to download tih file!".format(df_filter['Email'][0]))
+        input_accessk = st.text_input("Input access key here")
+        verify_btn = st.button("verify key")
+
+        if verify_btn:
+          
+          if  input_accessk.strip() == df_filter['Accesskey'][0]:
+
+            if url is not None:
+                button_style = 'font-weight: 700; padding: 10px 13px; background-color: #5E5DF0; color: white; border: none; border-radius: 15px;'
+
+                st.write(f'''
+                        <a target="_self" href="{url}">
+                            <button style="{button_style}">
+                                Download file
+                            </button>
+                        </a>
+                        ''',
+                        unsafe_allow_html=True
+                    )        
+
+
+          else:
+            st.error('Access key invlaid for file.')   
+
+
+    else:
+        
+        if url is not None:
+
+            button_style = 'font-weight: 700; padding: 10px 13px; background-color: #5E5DF0; color: white; border: none; border-radius: 15px;'
+
+            st.write(f'''
+                    <a target="_self" href="{url}">
+                        <button style="{button_style}">
+                            Download file
+                        </button>
+                    </a>
+                    ''',
+                    unsafe_allow_html=True
+                )        
 
 
 
