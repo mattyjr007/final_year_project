@@ -45,17 +45,21 @@ def create_presigned_url(bucket_name, object_name, expiration=3600):
     # The response contains the presigned URL
     return response
 
-
-@st.cache_resource(ttl=100)
-def get_data():
-
-        try:
-            mydb =   mysql.connector.connect(
+@st.cache_resource
+def db_connect():
+     mydb =   mysql.connector.connect(
                                             host=st.secrets["DB_HOST"],
                                             port=3306,
                                             user= st.secrets["user"],
                                             password= st.secrets["pass"],
                                             database = st.secrets["database"] )
+     return mydb
+
+@st.cache_resource(ttl=100)
+def get_data():
+
+        try:
+            mydb = db_connect()
             
             query = "Select `File ID`, `Authors Name`,`Study Description`,`Email`, `Date` from Dicometa;"
             data = pd.read_sql(query,mydb)
