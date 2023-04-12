@@ -59,7 +59,13 @@ def db_connect():
 def get_data():
 
         try:
-            mydb = db_connect()
+            mydb =  mydb =   mysql.connector.connect(
+                                            host=st.secrets["DB_HOST"],
+                                            port=3306,
+                                            user= st.secrets["user"],
+                                            password= st.secrets["pass"],
+                                            database = st.secrets["database"] )
+   
             
             query = "Select `File ID`, `Authors Name`,`Study Description`,`Email`, `Date` from Dicometa;"
             data = pd.read_sql(query,mydb)
