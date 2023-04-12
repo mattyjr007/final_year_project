@@ -123,7 +123,7 @@ if len(df)>0:
 
     bucket_name = 'dicomdatabase'
     object_key = df['File ID'][0]
-    print(df['Email'][0])
+    
 
     url = create_presigned_url(bucket_name, object_key)
 
@@ -131,8 +131,6 @@ if len(df)>0:
     df_role = df_filter[df_filter['Role'] == 'admin']
 
     if  len(df_role) > 0:
-        #print("IS AN ADMIN")
-        #print(df_filter['Accesskey'][0])
 
         st.info("This file is owned by admin please request for accesskey from `{0}` to download tih file!".format(df_filter['Email'][0]))
         input_accessk = st.text_input("Input access key here")
