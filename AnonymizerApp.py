@@ -19,6 +19,8 @@ def save_uploadedfile(uploadedfile):
          os.mkdir("tempDir")
      except:
          print("directory tempDir exists")
+         shutil.rmtree('tempDir')
+         os.mkdir("tempDir")
 
      with open(os.path.join("tempDir",uploadedfile.name),"wb") as f:
          f.write(uploadedfile.getbuffer())
