@@ -45,6 +45,22 @@ class kanon:
     def __init__(self):
         self.zipname = ""
         self.dicomzipdir =""
+        # initialize s3 connection
+        self.S3 = boto3.client(
+                's3',
+                aws_access_key_id = os.getenv('aws_access_key_id'),
+                aws_secret_access_key = os.getenv('aws_secret_access_key'),
+                region_name = os.getenv('region')
+            )
+        # initialize database connection
+        self.Database =  mysql.connector.connect(
+                                            host=st.secrets["DB_HOST"],
+                                            port=3306,
+                                            user= st.secrets["user"],
+                                            password= st.secrets["pass"],
+                                            database = st.secrets["database"])
+
+        
 
 
     def k_anonymize(self,extS,anS,anP,status):
@@ -243,12 +259,7 @@ class kanon:
         upP.empty()
 
         # Creating the low level functional client
-        client = boto3.client(
-                's3',
-                aws_access_key_id = os.getenv('aws_access_key_id'),
-                aws_secret_access_key = os.getenv('aws_secret_access_key'),
-                region_name = os.getenv('region')
-            )
+        client = self.S3
 
         s3db = 'dicomdatabase'
 
@@ -279,13 +290,7 @@ class kanon:
             zipnameQ = self.zipname + ".zip"
 
             # Connect to server
-            db =  mysql.connector.connect(
-                                            host=st.secrets["DB_HOST"],
-                                            port=3306,
-                                            user= st.secrets["user"],
-                                            password= st.secrets["pass"],
-                                            database = st.secrets["database"])
-
+            db = self.Database
             # Get a cursor
             cur = db.cursor()
 
@@ -313,6 +318,61 @@ class kanon:
             except:
                 sqS.error("An error occured uploading your file to database")    
 
+
+    # upload to s3 and db for single file
+    def single_upload(self, filepath,name,email,descrip,msg,msg2):
+
+        client = self.S3
+        s3db = 'dicomdatabase'
+
+        dcmnamedcm = "dcm" + str(time.time()) +".dcm"
+        thedcmdirname = filepath
+        msg.info("Uploading to database in progress...")
+
+        try:  
+            client.upload_file(thedcmdirname,s3db,dcmnamedcm)
+        except: 
+            msg.error("There was an issue uploading this file to the database..")
+            return
+        #shutil.rmtree('r')
+        
+
+        self.name = name
+        self.email = email
+        self.description = descrip
+        self.role = "user"
+        self.accesskey = ""
+       
+
+            # Connect to server
+        db = self.Database
+            # Get a cursor
+        cur = db.cursor()
+
+        query = ("SELECT COUNT(*) FROM Dicometa "
+                "WHERE Email = %s AND Role =  %s")
+        admin = 'admin'
+        cur.execute(query, (self.email,admin))
+
+        if cur.fetchone()[0] > 0:
+            self.role = "admin"
+            self.accesskey = str(uuid.uuid1())
+
+        add_file = ("INSERT INTO Dicometa "
+            "(`File ID`, `Authors Name`, `Study Description`, Email, Role, Accesskey) "
+            "VALUES (%s, %s, %s, %s, %s,  %s)")
+            
+        file_details = (dcmnamedcm, self.name, self.description, self.email,self.role,self.accesskey)
+
+        try:
+            cur.execute(add_file,file_details)
+            db.commit()
+            msg.success("uploading successful")
+
+            if self.role == 'admin':
+                msg2.info("please keep your accesskey safe. `{}`".format(self.accesskey))
+        except:
+            msg2.error("An error occured uploading your file to database")    
 
 
 
