@@ -61,9 +61,12 @@ with header:
            `Anonymization of medical images using k-anonymity`.\
              To anonymize your file please create a zip of your dicom dataset and upload below.")
 
+    st.warning("Please note that anonymizing a single file does not apply K-anonymity technique.")
+
 runupload = False
 
 with extractzip:
+    #st.markdown("<h6>Upload dicom zip file or single dicom file</h6>", unsafe_allow_html=True)
     
     file_uploaded = st.file_uploader("Upload dicom zip file or single dicom file", type=["dcm","zip"], accept_multiple_files=False)
 
