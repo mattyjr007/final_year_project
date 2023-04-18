@@ -5,8 +5,48 @@ from PIL import Image
 import time
 from anon import kanon as ka
 import numpy as np
+import os
+import imageio
+import matplotlib.pyplot as plt
+import pandas as pd
+import pydicom
 
 st.set_page_config(page_title="Anonymizer App", page_icon="🏠")
+
+# this function save the single dicom image into a folder
+def save_uploadedfile(uploadedfile):
+     try:
+         os.mkdir("tempDir")
+     except:
+         print("directory tempDir exists")
+
+     with open(os.path.join("tempDir",uploadedfile.name),"wb") as f:
+         f.write(uploadedfile.getbuffer())
+     return st.success("Uploading File:{} successful".format(uploadedfile.name))
+
+# single file anonymizer function
+def single_anonymize(pathh):
+    filepath = pathh
+    
+    # Load the DICOM file using pydicom
+    dicom_file = pydicom.dcmread(filepath)
+
+    attr = ['PatientName', 'PatientID', 'PatientBirthDate','PatientSex','PatientAge','PatientAddress','PatientWeight']
+    attr2 = ['ReferringPhysicianName','ReferringPhysicianAddress','StudyTime','PerformingPhysicianName','InstitutionName',
+                 'InstitutionAddress','Occupation','ReferringPhysicianTelephoneNumbers','PatientTelephoneNumbers','PersonTelephoneNumbers']
+
+    for tag in attr2:
+        if tag in dicom_file:
+            dicom_file.data_element(tag).value = None
+
+
+    for tag in attr:
+        if tag in dicom_file:
+                #dicom_file.data_element(tag).value = str(final_df.loc[i,tag])
+            VR = pydicom.dataelem.DataElement(tag,'LO','****')
+            dicom_file.add(VR)
+    dicom_file.save_as(filepath)
+
 
 header = st.container()
 extractzip = st.container()
@@ -25,34 +65,102 @@ runupload = False
 
 with extractzip:
     
-    file_uploaded = st.file_uploader("Upload dicom zip", type=["zip"], accept_multiple_files=False)
+    file_uploaded = st.file_uploader("Upload dicom zip file or single dicom file", type=["dcm","zip"], accept_multiple_files=False)
 
     upload_sucess = st.empty()
 
     if 'ran' not in st.session_state:
         if file_uploaded is not None:
-            info = st.info("Please wait extraction in progress")
-            with zipfile.ZipFile(file_uploaded,"r") as z:
-                z.extractall("dicom")
-                info.empty()
-                upload_sucess.success("extraction complete...")
-                #shutil.make_archive('dico', 'zip', 'dicom')
-            st.session_state.ran = True    
+
+             if file_uploaded.type == "application/zip":
+            
+                info = st.info("Please wait extraction in progress")
+                with zipfile.ZipFile(file_uploaded,"r") as z:
+                    z.extractall("dicom")
+                    info.empty()
+                    upload_sucess.success("extraction complete...")
+                    #shutil.make_archive('dico', 'zip', 'dicom')
+                st.session_state.ran = True  
+             else:
+                 
+                  # save single dcm file
+                 save_uploadedfile(file_uploaded)
+
+                 st.markdown("<h4 style='text-align: center;'>Viewing Unanonymized Dicom File</h4>", unsafe_allow_html=True)
+                
+                 im = imageio.imread('tempDir/{0}'.format(file_uploaded.name))  
+                   
+                 fig, ax = plt.subplots(dpi=200)
+                 ax.axis('off')
+                 ax.imshow(im)
+                 fig.set_size_inches(12, 12)
+                    #fig.savefig('tempDir/image.png',transparent=True)
+                    #myimg =Image.open('tempDir/image.png')
+                    #new_image = myimg.resize((400, 500))
+                 a,b = st.columns(2)
+                    #a.dataframe(im.meta)
+                 dicodf = pd.DataFrame.from_dict(im.meta, orient='index', columns=['Attributes'])
+                # dicodf = pd.DataFrame(im.meta).iloc[0,:].T
+                    #dicodf = pd.DataFrame(dicodf)
+                    #dicodf.columns = ['Attributes']
+                 a.dataframe(dicodf,height=400)
+                    #b.image(new_image)
+                 b.pyplot(fig)
+                 
     else:
         upload_sucess.success("extraction complete...")        
         #st.success("extraction complete...")
 
 def k_anon(extS,anS,anP,status,upS,upP,sqS):    
 
-    if file_uploaded is None:
-        status.error("please upload a dicom zip file")
-        return
-    elif name.strip() == "":
+    if name.strip() == "":
         status.warning("Please enter an author name")
         return
     elif email.strip() == "":
         status.write("Please enter your email address.")
         return
+     
+    # checks for uploaded file
+    if file_uploaded is None:
+        status.error("please upload a dicom zip file or single dicom file")
+        return
+    else:
+        # check if it is single file then anonymize and end function
+        if file_uploaded.type != "application/zip":
+            sing_path = 'tempDir/{0}'.format(file_uploaded.name)
+            try:
+                #anonymize the single file
+                tempInfo= st.empty()
+                tempInfo.info("please wait anonymizing in progress...")
+                single_anonymize(sing_path)
+                tempInfo.success("anonymization complete")
+
+                st.markdown("<h4 style='text-align: center;'>Viewing Anonymized Dicom File</h4>", unsafe_allow_html=True)
+                
+                imA = imageio.imread(sing_path)  
+                   
+                fig2, ax2 = plt.subplots(dpi=200)
+                ax2.axis('off')
+                ax2.imshow(imA)
+                fig2.set_size_inches(12, 12)
+                # create columns
+                c,d = st.columns(2)
+                # dicom dataframe
+                dicodfA = pd.DataFrame.from_dict(imA.meta, orient='index', columns=['Attributes'])
+                # dicodf = pd.DataFrame(im.meta).iloc[0,:].T
+                    #dicodf = pd.DataFrame(dicodf)
+                    #dicodf.columns = ['Attributes']
+                c.dataframe(dicodfA,height=400)
+                    #b.image(new_image)
+                d.pyplot(fig2)
+
+            except:
+                st.error("an error occured while anonymizing file")
+
+            return #end code after anonymizing single file
+
+
+   
 
 
     anonymizer = ka()
