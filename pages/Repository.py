@@ -140,8 +140,8 @@ if len(df)>0:
     df_role = df_filter[df_filter['Role'] == 'admin']
 
     if  len(df_role) > 0:
-
-        st.info("This file is owned by admin please request for accesskey from `{0}` to download tih file!".format(df_filter['Email'][0]))
+        #print(df_filter.Email.values[0])
+        st.info("This file is owned by admin please request for accesskey from `{0}` to download tih file!".format(df_filter.Email.values[0]))
         input_accessk = st.text_input("Input access key here")
         verify_btn = st.button("verify key")
 
