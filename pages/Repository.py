@@ -59,18 +59,16 @@ def db_connect():
 def get_data():
 
         try:
-            mydb =  mydb =   mysql.connector.connect(
-                                            host=st.secrets["DB_HOST"],
-                                            port=3306,
-                                            user= st.secrets["user"],
-                                            password= st.secrets["pass"],
-                                            database = st.secrets["database"] )
+            mydb =  db_connect()
    
             
             query = "Select `File ID`, `Authors Name`,`Study Description`,`Email`, `Date` from Dicometa;"
             data = pd.read_sql(query,mydb)
+            data.sort_values(by='Date', inplace=True)
+            
             query2 = "Select `File ID`,`Email`,`Role`,`Accesskey` from Dicometa;"
             data2 = pd.read_sql(query2,mydb)
+            
             mydb.close() #close the connection
             return data,data2
         except Exception as e:
