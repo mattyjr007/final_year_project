@@ -51,7 +51,7 @@ def single_anonymize(pathh):
 header = st.container()
 extractzip = st.container()
 
-headerImg = Image.open('imgs/cyber.png')
+headerImg = Image.open('imgs/0o9r95kf.png')
 
 with header:
     st.title("MatZap Dicom Anonymizer")
