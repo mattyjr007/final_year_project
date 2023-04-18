@@ -125,6 +125,8 @@ def k_anon(extS,anS,anP,status,upS,upP,sqS):
         status.write("Please enter your email address.")
         return
      
+    #initialize the k-anonymize function
+    anonymizer = ka() 
     # checks for uploaded file
     if file_uploaded is None:
         status.error("please upload a dicom zip file or single dicom file")
@@ -158,6 +160,11 @@ def k_anon(extS,anS,anP,status,upS,upP,sqS):
                 c.dataframe(dicodfA,height=400)
                     #b.image(new_image)
                 d.pyplot(fig2)
+                # for displaying any error messagw
+                sStatus = st.empty()
+                msg2 = st.empty()
+
+                anonymizer.single_upload(sing_path,name,email,studydesc,sStatus,msg2)
 
             except:
                 st.error("an error occured while anonymizing file")
@@ -166,9 +173,7 @@ def k_anon(extS,anS,anP,status,upS,upP,sqS):
 
 
    
-
-
-    anonymizer = ka()
+    # hanlde zip anonymization
     result = anonymizer.k_anonymize(extS,anS,anP,status)
     
     if result:
