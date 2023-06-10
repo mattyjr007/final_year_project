@@ -56,7 +56,7 @@ extractzip = st.container()
 headerImg = Image.open('imgs/0o9r95kf.png')
 
 with header:
-    st.title("MatZap Dicom Anonymizer")
+    st.title("MondFly Dicom Anonymizer")
     st.image(headerImg)
     st.write('')
     st.write("Hey!, Welcome to Matzap dicom imaging k-anonymizer web application. this website is a product of the project \
