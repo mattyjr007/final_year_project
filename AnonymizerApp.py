@@ -59,7 +59,7 @@ with header:
     st.title("MondFly Dicom Anonymizer")
     st.image(headerImg)
     st.write('')
-    st.write("Hey!, Welcome to Matzap dicom imaging k-anonymizer web application. this website is a product of the project \
+    st.write("Hey!, Welcome to Mondfly dicom imaging k-anonymizer web application. this website is a product of the project \
            `Anonymization of medical images using k-anonymity`.\
              To anonymize your file please create a zip of your dicom dataset and upload below.")
 
