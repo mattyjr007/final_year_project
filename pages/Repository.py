@@ -93,7 +93,7 @@ except:
 
 with st.container():
     st.header("MondFly Anonymized files repository")
-    st.write("Welcome to matzap public repository containing anonymized files using the app\
+    st.write("Welcome to mondfly public repository containing anonymized files using the app\
              . search for the file and select it via the check box and proceed to download.")
     
     st.info("**Note:** some files are privately owned please email the author to get access.")
