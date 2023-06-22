@@ -222,6 +222,7 @@ with formcontainer:
 
              
         
+st.info("© 2023 Dr Alamu.F.O,  Mr Mathias. All Rights Reserved")
        
 
 

@@ -205,3 +205,5 @@ if len(df)>0:
     #         )
     #Pass the selected rows to a new dataframe df
 
+
+st.info("© 2023 Dr Alamu.F.O,  Mr Mathias. All Rights Reserved")
